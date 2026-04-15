@@ -49,7 +49,7 @@ class Board:
         elif orientation == 'V':
 
             # Bounds Check
-            if start_row + ship.size > self.size:
+            if start_row + ship.size >= self.size:
                 return False
 
             # Overlap Check
@@ -100,7 +100,8 @@ class Board:
                     if i.is_sunk():
                         return "SUNK"
                     else:
-                        return "HIT"          
+                        return "HIT"      
+        return     
 
     def all_ships_sunk(self):
         """
@@ -153,3 +154,15 @@ class Board:
                     print(val, end = ' ')
             
             print()
+
+
+# fieldBoard = Board()
+# fieldBoard.display()
+
+    def delete_ship(self, ship_name):
+        for ship in self.ships:
+            if ship.name == ship_name:
+                for (r, c) in ship.coordinates:
+                    self.grid[r][c] = WATER
+                self.ships.remove(ship)
+    
