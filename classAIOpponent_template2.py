@@ -206,7 +206,7 @@ class AIOpponent(Player):
                     if row==self.start[0]:
                         targets = [(row,col-1), (row, col+1)]
                     else:
-                        tragets=[(row-1, col), (row+1, col)]
+                        targets=[(row-1, col), (row+1, col)]
 
                 for i,j in targets:
                     if check(i,j):
