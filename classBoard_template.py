@@ -153,3 +153,10 @@ class Board:
                     print(val, end = ' ')
             
             print()
+
+    def delete_ship(self, ship_name):
+        for ship in self.ships:
+            if ship.name == ship_name:
+                for (r, c) in ship.coordinates:
+                    self.grid[r][c] = WATER
+                self.ships.remove(ship)
