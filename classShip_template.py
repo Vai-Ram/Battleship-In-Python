@@ -1,31 +1,26 @@
 class Ship:
+    """
+    A class representing a single ship in the game.
+    It tracks its own size, location, and damage status.
+    """
+
     def __init__(self, name, size):
         """
-        Initialize the Ship.
-        
-        Logic to implement:
-        1. Store self.name (e.g., "Destroyer").
-        2. Store self.size (e.g., 2).
-        3. Initialize self.coordinates = [] (Empty list to store (row, col) tuples later).
-        4. Initialize self.hits = 0 (Tracks damage).
+        Initialize the Ship object.
         """
-        pass
+        self.name = name
+        self.size = size
+        self.coordinates = [] # Stores (row, col) tuples. Populated by Board.place_ship()
+        self.hits = 0         # specific hit counter for this ship
 
     def record_hit(self):
         """
-        Registers damage to the ship.
-        
-        Logic to implement:
-        1. Increment self.hits by 1.
+        Registers damage to the ship when one of its coordinates is hit.
         """
-        pass
+        self.hits += 1
 
     def is_sunk(self):
         """
         Checks if the ship is destroyed.
-        
-        Logic to implement:
-        1. Return True if self.hits is equal to self.size.
-        2. Otherwise, return False.
         """
-        pass
+        return self.hits >= self.size
