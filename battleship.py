@@ -5,7 +5,6 @@ from classAIOpponent_template import AIOpponent
 from classBoard_template import *
 from classShip_template import Ship
 
-
 class ToolTip:
     """A simple tooltip implementation for Tkinter."""
     def __init__(self, widget, text):
@@ -60,11 +59,11 @@ class BattleshipApp:
         }
 
         # Initialising objects
-
         self.human_player = Player("You, dumbass")
         self.AI_opp = AIOpponent()
-        # self.human_board = Board()
-        # self.AI_board = Board()
+        
+        # NOTE: Removed self.human_board and self.AI_board to prevent state mismatch.
+        # We will directly use self.human_player.board and self.AI_opp.board.
 
         # Tracking placed ships
         self.placed_ships = {}      # Format: {ship_name: [(r,c), (r,c)...]}
@@ -77,9 +76,7 @@ class BattleshipApp:
         self.main_container.pack(expand=True, fill="both")
 
         self.show_main_menu()
-        self.player=None
-        self.comp =None
-        self.playerturn=True
+        self.playerturn = True
 
     def clear_container(self):
         for widget in self.main_container.winfo_children():
@@ -92,17 +89,12 @@ class BattleshipApp:
         menu_frame = tk.Frame(self.main_container, bg="#f4f6f9")
         menu_frame.place(relx=0.5, rely=0.4, anchor="center")
 
-        # Minecraft style title (Big, Bold, Arial, Red)
         title_label = tk.Label(menu_frame, text="BATTLESHIP", font=("Arial", 64, "bold"), fg="#c0392b", bg="#f4f6f9")
         title_label.pack(pady=(0, 50))
 
         play_btn = tk.Button(menu_frame, text="Play", font=("Helvetica", 16, "bold"), width=15, 
                              bg="#3498db", fg="white", relief="groove", command=self.show_difficulty_menu)
         play_btn.pack(pady=10)
-
-        # settings_btn = tk.Button(menu_frame, text="Settings", font=("Helvetica", 16, "bold"), width=15, 
-        #                          bg="#7f8c8d", fg="white", relief="groove")
-        # settings_btn.pack(pady=10)
 
     # --- Screen 2: Difficulty Selection ---
     def show_difficulty_menu(self):
@@ -127,7 +119,6 @@ class BattleshipApp:
         self.setup_game_ui()
 
     def setup_game_ui(self):
-        # 1. Top Status Frame (No difficulty selection here as requested)
         self.top_frame = tk.Frame(self.main_container, bg="#ffffff", bd=1, relief="solid")
         self.top_frame.pack(fill="x", padx=20, pady=15)
         
@@ -135,32 +126,26 @@ class BattleshipApp:
                                      font=("Helvetica", 12, "bold"), fg="#2c3e50", bg="#ffffff")
         self.status_label.pack(pady=10)
 
-        # 2. Boards Frame
         self.boards_frame = tk.Frame(self.main_container, bg="#f4f6f9")
         self.boards_frame.pack(expand=True, pady=10)
 
-        # Player Board
         left_frame = tk.Frame(self.boards_frame, bg="#f4f6f9")
         left_frame.grid(row=0, column=0, padx=40)
         tk.Label(left_frame, text="YOUR OCEAN", font=("Helvetica", 14, "bold"), fg="#2980b9", bg="#f4f6f9").pack(pady=(0, 10))
         self.build_grid(left_frame, self.player_buttons, is_player=True)
 
-        # Opponent Board
         right_frame = tk.Frame(self.boards_frame, bg="#f4f6f9")
         right_frame.grid(row=0, column=1, padx=40)
         tk.Label(right_frame, text="TARGET RADAR", font=("Helvetica", 14, "bold"), fg="#c0392b", bg="#f4f6f9").pack(pady=(0, 10))
         self.build_grid(right_frame, self.target_buttons, is_player=False)
 
-        # 3. Setup Controls (Bottom Frame)
         self.bottom_frame = tk.Frame(self.main_container, bg="#ffffff", bd=1, relief="solid")
         self.bottom_frame.pack(fill="x", side="bottom", padx=20, pady=20)
         
-        # Change button (Bottom Left)
         self.change_btn = tk.Button(self.bottom_frame, text="Change (Delete Ship)", font=("Helvetica", 10, "bold"),
                                     bg="#e74c3c", fg="white", state="disabled", command=self.delete_selected_ship)
         self.change_btn.pack(side="left", padx=20, pady=15)
 
-        # Container to center the selection elements
         center_bottom = tk.Frame(self.bottom_frame, bg="#ffffff")
         center_bottom.pack(side="left", expand=True)
 
@@ -181,7 +166,6 @@ class BattleshipApp:
                                     bg="#ecf0f1", relief="groove", command=self.toggle_orientation)
         self.orient_btn.grid(row=0, column=3, padx=10)
 
-        # Start button (Bottom Right)
         self.start_btn = tk.Button(self.bottom_frame, text="START GAME", width=15, font=("Helvetica", 11, "bold"),
                                    bg="#2ecc71", fg="black", relief="groove", state="disabled", command=self.on_start_game)
         self.start_btn.pack(side="right", padx=20, pady=15)
@@ -207,13 +191,11 @@ class BattleshipApp:
                 button_dict[(row, col)] = btn
 
     # --- Game Logic: Placement Phase ---
-
     def toggle_orientation(self):
         current = self.orientation.get()
         self.orientation.set("Vertical" if current == "Horizontal" else "Horizontal")
 
     def clear_delete_selection(self):
-        # Un-highlight the previously selected ship for deletion
         if self.selected_for_deletion:
             for (r, c) in self.placed_ships[self.selected_for_deletion]:
                 self.player_buttons[(r, c)].config(bg="red")
@@ -221,21 +203,18 @@ class BattleshipApp:
             self.change_btn.config(state="disabled")
 
     def on_player_grid_clicked(self, row, col):
-        # 1. Check if user clicked an existing ship (Select for deletion)
         if (row, col) in self.board_cells:
             self.clear_delete_selection()
             clicked_ship = self.board_cells[(row, col)]
             self.selected_for_deletion = clicked_ship
             
-            # Highlight chosen ship to indicate it can be deleted
             for (r, c) in self.placed_ships[clicked_ship]:
-                self.player_buttons[(r, c)].config(bg="#e67e22") # Orange selection
+                self.player_buttons[(r, c)].config(bg="#e67e22")
             
             self.change_btn.config(state="normal")
             self.status_label.config(text=f"Selected {clicked_ship}. Click 'Change' to remove it.")
             return
 
-        # 2. Otherwise, attempt to place the currently selected ship
         ship_name = self.selected_ship.get()
         if ship_name in self.placed_ships:
             self.status_label.config(text=f"{ship_name} is already placed!")
@@ -245,7 +224,6 @@ class BattleshipApp:
         orient = self.orientation.get()
         coords_to_place = []
 
-        # Calculate coordinates
         for i in range(length):
             r = row + (i if orient == "Vertical" else 0)
             c = col + (i if orient == "Horizontal" else 0)
@@ -254,40 +232,32 @@ class BattleshipApp:
                 return
             coords_to_place.append((r, c))
 
-        
-
-        # Placing the ship in the backend
         if orient == "Vertical":
             rep = 'V'
         else:
             rep = "H"
 
-        ship_obj = Ship(ship_name, self.ships_info.get(ship_name))
+        ship_obj = Ship(ship_name, self.ships_info[ship_name])
 
+        # FIX: Appending to the actual player's board, not a standalone board
         self.human_player.board.place_ship(ship_obj, row, col, rep)
 
-        # Place the ship in the front end
         self.placed_ships[ship_name] = coords_to_place
-
 
         for (r, c) in coords_to_place:
             self.board_cells[(r, c)] = ship_name
             btn = self.player_buttons[(r, c)]
             btn.config(bg="red")
-            # Bind tooltip
             self.ship_tooltips[(r, c)] = ToolTip(btn, ship_name)
 
-        # Disable the radio button for this ship
         self.ship_radio_btns[ship_name].config(state="disabled")
         self.clear_delete_selection()
         
-        # Check if all ships placed
         if len(self.placed_ships) == len(self.ships_info):
             self.start_btn.config(state="normal")
             self.status_label.config(text="All ships placed! You can now Start Game.")
         else:
             self.status_label.config(text=f"Placed {ship_name}. Select next ship.")
-            # Auto-select the next available ship
             for s in self.ships_info.keys():
                 if s not in self.placed_ships:
                     self.selected_ship.set(s)
@@ -297,25 +267,21 @@ class BattleshipApp:
         if not self.selected_for_deletion: return
         ship_name = self.selected_for_deletion
         
-        # Remove from memory
-        #self.human_player.board.delete_ship(ship_name) not implemented yet
+        # FIX: Deleting from the actual player's board
+        self.human_player.board.delete_ship(ship_name)
 
-        # Remove from board
         for (r, c) in self.placed_ships[ship_name]:
             btn = self.player_buttons[(r, c)]
-            btn.config(bg="#d6eaf8") # Reset to water color
+            btn.config(bg="#d6eaf8")
             del self.board_cells[(r, c)]
-            # Remove Tooltip
             if (r, c) in self.ship_tooltips:
                 self.ship_tooltips[(r, c)].hide_tooltip()
-                # Unbind events safely
                 btn.unbind("<Enter>")
                 btn.unbind("<Leave>")
                 del self.ship_tooltips[(r, c)]
 
         del self.placed_ships[ship_name]
         
-        # Reset UI controls
         self.ship_radio_btns[ship_name].config(state="normal")
         self.selected_ship.set(ship_name)
         self.selected_for_deletion = None
@@ -324,23 +290,20 @@ class BattleshipApp:
         self.status_label.config(text=f"Removed {ship_name}.")
 
     # --- Game Logic: Combat Phase ---
-
     def on_start_game(self):
-
         self.AI_opp.random_place_ships()
-        # Disable own board clicks
+        
         for btn in self.player_buttons.values():
             btn.config(command=lambda: None) 
         
-        # Enable target board clicks
         for btn in self.target_buttons.values():
             btn.config(state="normal")
             
-        # Hide the setup bars entirely
         self.top_frame.pack_forget()
         self.bottom_frame.pack_forget()
+        
         self.battle_status = tk.Label(self.main_container, text="Your Turn! Fire at the Radar.", 
-                                  font=("Helvetica", 14, "bold"), bg="#f4f6f9", fg="#2c3e50")
+                                      font=("Helvetica", 14, "bold"), bg="#f4f6f9", fg="#2c3e50")
         self.battle_status.pack(pady=10)
 
     def on_target_grid_clicked(self, row, col):
@@ -348,46 +311,45 @@ class BattleshipApp:
             return
 
         result = self.AI_opp.board.receive_attack(row,col)
-
         self.human_player.shots_fired.add((row,col))
 
         btn = self.target_buttons[(row, col)]
-        btn.config(bg="#34495e", state="disabled") # Miss effect as placeholder
+        btn.config(bg="#34495e", state="disabled") 
 
         if result in ("HIT", "SUNK"):
             btn.config(bg="#e74c3c", text="X")
             if result=="SUNK":
-                self.battle_status.config(text=f"You sunk an enemy the ship")
+                self.battle_status.config(text="You sunk an enemy ship!")
         else:
             btn.config(bg="#34495e", text="O")
         
         if self.AI_opp.board.all_ships_sunk():
             self.battle_status.config(text="YOU WIN", font=("Helvetica", 20, "bold"), fg="#c0392b")
-
             for btn in self.target_buttons.values():
                 btn.config(state="disabled")
             return
         
-        self.playerturn=False
-        self.battle_status.config(text="Computer is calculating")
+        self.playerturn = False
+        self.battle_status.config(text="Computer is calculating...")
         self.root.after(800, self.ai_turn)
 
     def ai_turn(self):
-        result=self.AI_opp.attack(self.human_player.board)
+        result = self.AI_opp.attack(self.human_player.board)
 
         for (r,c), btn in self.player_buttons.items():
-            cell_value= self.human_player.board.grid[r][c]
-            if cell_value=="X":
+            cell_value = self.human_player.board.grid[r][c]
+            if cell_value == "X":
                 btn.config(bg="#8e44ad", text="X", fg="white")
             elif cell_value == "O":
                 btn.config(bg="#2980b9", text="O", fg="white")
+        
         if self.human_player.board.all_ships_sunk():
             self.battle_status.config(text="AI has WON", font=("Helvetica", 20, "bold"), fg="#c0392b")
-
             for btn in self.target_buttons.values():
                 btn.config(state="disabled")
             return
-        self.playerturn=True
+            
+        self.playerturn = True
         self.battle_status.config(text="Your Turn!")
 
 if __name__ == "__main__":
