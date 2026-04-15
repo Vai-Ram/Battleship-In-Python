@@ -1,7 +1,7 @@
 import tkinter as tk
 import random
 from classPlayer_template import Player
-from class_AIOpponent_template import AIOpponent
+from classAIOpponent_template import AIOpponent
 from classBoard_template import *
 from classShip_template import Ship
 
@@ -298,7 +298,7 @@ class BattleshipApp:
         ship_name = self.selected_for_deletion
         
         # Remove from memory
-        self.human_player.board.delete_ship(ship_name)
+        #self.human_player.board.delete_ship(ship_name) not implemented yet
 
         # Remove from board
         for (r, c) in self.placed_ships[ship_name]:

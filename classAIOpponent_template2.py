@@ -1,7 +1,8 @@
 import random
 from unittest import result
 from classPlayer_template import Player
-from classBoard_template import WATER, SHIP, MISS, HIT
+from classBoard_template import WATER, HIT, MISS, SHIP
+import classBoard_template
 
 class AIOpponent(Player):
     def __init__(self, name="Bot 9000"):
@@ -12,8 +13,9 @@ class AIOpponent(Player):
         self.parity = 2
         self.score_grid = [[0 for i in range(10)] for i in range(10)]
         self.needs_recalc = True
-
+        self.start=None
     def _get_smallest_alive_ship(self, enemy_board):
+        
         """
         Helper method to find the smallest ship that is NOT sunk.
         
@@ -22,6 +24,7 @@ class AIOpponent(Player):
         Return the minimum 'size' of the remaining ships.
         Handle the edge case: If all ships are somehow sunk, just return 1 to avoid errors.
         """
+
         smallest_ship_size = 6
 
         for ship in enemy_board.ships:
@@ -33,7 +36,7 @@ class AIOpponent(Player):
             return 1
         
         return smallest_ship_size
-    
+
     def update_parity(self, enemy_board):
         """
         Checks if the parity jump distance needs to change.
@@ -42,10 +45,10 @@ class AIOpponent(Player):
         Check if this size is different from self.parity.
         If it is different, update self.parity to the new size and set self.needs_recalc to True.
         """
-        curr_parity=self._get_smallest_alive_ship(enemy_board)
+        curr_parity = self._get_smallest_alive_ship(enemy_board)
 
-        if curr_parity!=self.parity:
-            self.parity=curr_parity
+        if curr_parity != self.parity:
+            self.parity = curr_parity
             self.needs_recalc=True
 
     def calc_scores(self, enemy_board):
@@ -69,7 +72,7 @@ class AIOpponent(Player):
         self.score_grid = [[0 for i in range(10)] for i in range(10)]
         for row in range(10):
             for col in range(10):
-                if (row+col)%self.parity == 0:
+                if (row+col) % self.parity == 0:
                     self.score_grid[row][col]+=(
                         all(check(row+i,col) for i in range(1,self.parity))+
                         all(check(row,col+i) for i in range(1,self.parity))+
@@ -77,11 +80,8 @@ class AIOpponent(Player):
                         all(check(row,col-i) for i in range(1,self.parity))
                         )
         
-
         self.needs_recalc=False
                     
-    
-
     def patch_scores(self, row, col):
         # HarishWasHere
         """
@@ -149,7 +149,7 @@ class AIOpponent(Player):
         """
 
         while self.target_stack:
-            element_index =  self.target_stack.pop()
+            element_index = self.target_stack.pop()
             if element_index not in self.shots_fired:
                 return element_index
 
@@ -199,8 +199,14 @@ class AIOpponent(Player):
                     self.patch_scores(row, col)
             case "HIT":
                 self.hunting = False
-
-                targets = [(row+1, col), (row-1, col), (row, col+1), (row,col-1)]
+                if not self.start:
+                    targets = [(row+1, col), (row, col-1), (row-1, col), (row,col+1)]
+                    self.start = (row,col)
+                else:
+                    if row==self.start[0]:
+                        targets = [(row,col-1), (row, col+1)]
+                    else:
+                        tragets=[(row-1, col), (row+1, col)]
 
                 for i,j in targets:
                     if check(i,j):
@@ -210,8 +216,13 @@ class AIOpponent(Player):
                 self.hunting = True
                 self.target_stack = []
                 self.needs_recalc = True
+                self.start=None
 
         return result
 
 
-        pass
+
+
+    
+        
+       
