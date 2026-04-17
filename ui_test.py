@@ -113,8 +113,8 @@ class BattleshipApp:
 
         tk.Label(diff_frame, text="Select Difficulty", font=("Arial", 32, "bold"), fg="#2c3e50", bg="#f4f6f9").pack(pady=(0, 40))
 
-        colors = {"Easy": "#2ecc71", "Medium": "#f1c40f", "Hard": "#e74c3c"}
-        for level in ["Easy", "Medium", "Hard"]:
+        colors = {"Easy": "#2ecc71", "Medium": "#f1c40f", "Hard": "#e74c3c", "Madhav": "#8f00be"}
+        for level in ["Easy", "Medium", "Hard","Madhav"]:
             btn = tk.Button(diff_frame, text=level, font=("Helvetica", 14, "bold"), width=20,
                             bg=colors[level], fg="black" if level == "Medium" else "white", relief="groove",
                             command=lambda l=level: self.start_game_setup(l))
@@ -122,7 +122,7 @@ class BattleshipApp:
 
     # --- Screen 3: Game Board & Placement ---
     def start_game_setup(self, difficulty_level):
-        self.difficulty.set(difficulty_level)
+        self.difficulty = difficulty_level
         self.clear_container()
         self.setup_game_ui()
 
@@ -298,7 +298,7 @@ class BattleshipApp:
         ship_name = self.selected_for_deletion
         
         # Remove from memory
-        #self.human_player.board.delete_ship(ship_name) not implemented yet
+        self.human_player.board.delete_ship(ship_name) 
 
         # Remove from board
         for (r, c) in self.placed_ships[ship_name]:
@@ -366,14 +366,32 @@ class BattleshipApp:
 
             for btn in self.target_buttons.values():
                 btn.config(state="disabled")
+            for btn in self.player_buttons.values():
+                btn.config(state="disabled")
+                
+            self.show_play_again()
+
             return
         
+
         self.playerturn=False
-        self.battle_status.config(text="Computer is calculating")
-        self.root.after(800, self.ai_turn)
+        if result=="SUNK":
+            self.root.after(800, lambda: self.battle_status.config(text="Computer is calculating")) 
+            self.root.after(1600, self.ai_turn)
+        else:
+            self.battle_status.config(text="Computer is calculating")
+            self.root.after(800, self.ai_turn)
 
     def ai_turn(self):
-        result=self.AI_opp.attack(self.human_player.board)
+
+        if self.difficulty == "Medium":
+            result=self.AI_opp.attack(self.human_player.board)
+        elif self.difficulty == "Hard":
+            result=self.AI_opp.hm_attack(self.human_player.board)
+        elif self.difficulty == "Easy":
+            result=self.AI_opp.easy_attack(self.human_player.board)
+        elif self.difficulty == "Madhav":
+            result=self.AI_opp.impossible(self.human_player.board)
 
         for (r,c), btn in self.player_buttons.items():
             cell_value= self.human_player.board.grid[r][c]
@@ -386,9 +404,46 @@ class BattleshipApp:
 
             for btn in self.target_buttons.values():
                 btn.config(state="disabled")
+
+            for btn in self.player_buttons.values():
+                btn.config(state="disabled")
+
+            self.show_play_again()
+
             return
         self.playerturn=True
         self.battle_status.config(text="Your Turn!")
+        
+    def show_play_again(self):
+
+        self.play_again_btn = tk.Button(
+            self.main_container,
+            text="Play Again",
+            font=("Helvetica", 14, "bold"),
+            bg="#2ecc71",
+            fg="black",
+            command=self.reset_and_restart
+        )
+        self.play_again_btn.pack(pady=20)
+
+    def reset_and_restart(self):
+    # Reset backend state
+        self.human_player = Player("You, dumbass")
+        self.AI_opp = AIOpponent()
+
+        self.placed_ships.clear()
+        self.board_cells.clear()
+        self.ship_tooltips.clear()
+        self.selected_for_deletion = None
+
+        self.player_buttons.clear()
+        self.target_buttons.clear()
+        self.ship_radio_btns.clear()
+
+        self.playerturn = True
+
+        # Go back to main menu
+        self.show_main_menu()
 
 if __name__ == "__main__":
     root = tk.Tk()

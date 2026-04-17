@@ -14,6 +14,9 @@ class AIOpponent(Player):
         self.score_grid = [[0 for i in range(10)] for i in range(10)]
         self.needs_recalc = True
         self.start=None
+        self.heat_map = [[0 for i in range(10)] for i in range(10)]
+        self.hits = set()
+        self.ship_coords =[]
     def _get_smallest_alive_ship(self, enemy_board):
         
         """
@@ -116,8 +119,7 @@ class AIOpponent(Player):
         Otherwise, return a random choice from your list of best moves.
         """
 
-        # Not fully done yet
-        # HarishWasHereToo
+
         max_score = max([max(row_score) for row_score in self.score_grid])
         max_score_tuples = []
 
@@ -220,7 +222,137 @@ class AIOpponent(Player):
 
         return result
 
+    def hm_attack(self, enemy_board): # heatmap for hard difficulty
 
+            #helper function again
+            def check(r,c):
+                if 0<=r<10 and 0<=c<10 and enemy_board.grid[r][c] != MISS:
+                    return 1
+                return 0
+            
+            self.heat_map = [[0 for i in range(10)] for i in range(10)]
+
+            def check_placement(coord, size, orie):
+                if orie == "v":
+                    segment = [(coord[0]+i, coord[1]) for i in range(size)]
+                    if all(check(r,c) for r,c in segment):
+                        if self.hits:
+                            if not any((r,c) in self.hits for r,c in segment):
+                                return
+                        for r,c in segment:
+                            self.heat_map[r][c] += 1
+                else:
+                    segment = [(coord[0], coord[1]+i) for i in range(size)]
+                    if all(check(r,c) for r,c in segment):
+                        if self.hits:
+                            if not any((r,c) in self.hits for r,c in segment):
+                                return
+                        for r,c in segment:
+                            self.heat_map[r][c] += 1
+                        
+
+            for ori in ("v", "h"):
+                for r in range(10):
+                    for c in range(10):
+                        for ship in enemy_board.ships:
+                            if not ship.is_sunk():
+                                check_placement((r,c), ship.size, ori)
+
+            for (r, c) in self.hits:
+                for (nr, nc) in [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]:
+                    if 0 <= nr < 10 and 0 <= nc < 10:
+                        if enemy_board.grid[nr][nc] not in (HIT, MISS):
+                            self.heat_map[nr][nc] += 10
+
+            max_score = -1
+            max_score_tuple = []
+
+            for i in range(10):
+                for j in range(10):
+                    if (i,j) not in self.shots_fired:
+                        if self.heat_map[i][j] > max_score:
+                            max_score = self.heat_map[i][j]
+                            max_score_tuple = [(i,j)]
+                        elif self.heat_map[i][j] == max_score:
+                            max_score_tuple.append((i,j))
+            
+            if max_score_tuple:
+                row,col = random.choice(max_score_tuple)
+            else:
+                print("very wrong bro")
+
+            res = enemy_board.receive_attack(row,col)
+
+            if res=="HIT":
+                self.hits.add((row,col))
+            elif res=="SUNK":
+                for sunkenship in enemy_board.ships:
+                    if (row,col) in sunkenship.coordinates:
+                        break
+                for cord in sunkenship.coordinates:
+                    self.hits.discard(cord)
+                
+
+            self.shots_fired.add((row,col))
+            return result
+    
+
+    def easy_attack(self, enemy_board): # easy mode - randomness and heuristic
+
+        pick =[0,0,0,0,1,1,1]
+
+        picked= random.choice(pick)
+        if picked == 0:
+            return self.attack(enemy_board)
+        else:
+            while True:
+                row= random.randint(0,9)
+                col = random.randint(0,9)
+                if (row,col) not in self.shots_fired:
+                    res = enemy_board.receive_attack(row,col)
+                    break
+            self.shots_fired.add((row,col))
+            return result
+        
+        
+    def impossible(self,enemy_board): # for madhav
+
+        if not self.ship_coords:
+            for i in enemy_board.ships:
+                for j in i.coordinates:
+                    self.ship_coords.append(j) 
+
+        def hit_ship():
+            for i in self.ship_coords:
+                if i not in self.shots_fired:
+                    row,col = i
+                    break
+            return (row,col)
+        
+        def random_hit():
+            while True:
+                row = random.randint(0,9)
+                col = random.randint(0,9)
+                if (row,col) not in self.shots_fired and (row,col) not in self.ship_coords:
+                    return (row,col)
+
+        if 0<=len(self.shots_fired)<6:
+            row,col = random_hit()
+        else:
+            for i in enemy_board.ships:
+                if any(j in self.shots_fired for j in i.coordinates) and  not all(j in self.shots_fired for j in i.coordinates):
+                    row,col = hit_ship()
+                    break
+            else:
+                if random.random()< 0.6:
+                    row,col = random_hit()
+                else:
+                    row,col = hit_ship()
+        
+
+        res = enemy_board.receive_attack (row,col)
+        self.shots_fired.add((row,col))
+        return result
 
 
     
