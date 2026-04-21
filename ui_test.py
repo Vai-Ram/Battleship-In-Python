@@ -1,3 +1,5 @@
+# Do not use
+
 import tkinter as tk
 import random
 from classPlayer_template import Player
