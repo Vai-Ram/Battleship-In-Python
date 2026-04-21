@@ -294,6 +294,7 @@ class AIOpponent(Player):
                 
 
             self.shots_fired.add((row,col))
+            print("AI fired at ", row, ", ", col, " and the result was ", res)
             return result
     
 
@@ -312,6 +313,7 @@ class AIOpponent(Player):
                     res = enemy_board.receive_attack(row,col)
                     break
             self.shots_fired.add((row,col))
+            print("AI fired at ", row, ", ", col, " and the result was ", res)
             return result
         
         
@@ -344,14 +346,20 @@ class AIOpponent(Player):
                     row,col = hit_ship()
                     break
             else:
-                if random.random()< 0.6:
-                    row,col = random_hit()
-                else:
-                    row,col = hit_ship()
+                # if random.random()< 0.6:
+                #     row,col = random_hit()
+                # else:
+                row,col = hit_ship()
+            
+            '''for i in enemy_board.ships:
+                for j in i.coordinates:
+                    row, col = hit_ship()'''
+                    
         
 
         res = enemy_board.receive_attack (row,col)
         self.shots_fired.add((row,col))
+        print("AI fired at ", row, ", ", col, " and the result was ", res)
         return result
 
 
