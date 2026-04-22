@@ -355,17 +355,17 @@ class BattleshipApp:
         btn.config(bg="#34495e", state="disabled") # Miss effect as placeholder
 
         if result in ("HIT", "SUNK"):
-            btn.config(bg="#e74c3c", text="X")
+            btn.config(bg="#e74c3c", text="X", fg="white")
             if result=="SUNK":
                 self.battle_status.config(text=f"You sunk an enemy the ship")
         else:
-            btn.config(bg="#34495e", text="O")
+            btn.config(bg="#34495e", text="O", fg= "white")
         
         if self.AI_opp.board.all_ships_sunk():
             self.battle_status.config(text="YOU WIN", font=("Helvetica", 20, "bold"), fg="#c0392b")
 
-            for btn in self.target_buttons.values():
-                btn.config(state="disabled")
+            # for btn in self.target_buttons.values():
+            #     btn.config(state="disabled")
             self.show_play_again()
             return
         
@@ -397,11 +397,11 @@ class BattleshipApp:
         if self.human_player.board.all_ships_sunk():
             self.battle_status.config(text="AI has WON", font=("Helvetica", 20, "bold"), fg="#c0392b")
 
-            for btn in self.target_buttons.values():
-                btn.config(state="disabled")
+            # for btn in self.target_buttons.values():
+            #     btn.config(state="disabled")
 
-            for btn in self.player_buttons.values():
-                btn.config(state="disabled")
+            # for btn in self.player_buttons.values():
+            #     btn.config(state="disabled")
 
             self.show_play_again()
             return
